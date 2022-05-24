@@ -49,7 +49,44 @@
 
 {{define "js"}}
     <script src="https://js.stripe.com/v3/"></script>
+    
     <script>
-        function val() {}
+    let card;
+    let stripe;
+    
+    const displayError = document.getElementById("card-errors");
+
+    stripe = Stripe('');
+
+    (function() {
+        // create stripe & elements
+        const elements = stripe.elements();
+        const style = {
+            base: {
+                fontSize: '16px',
+                lineHeight: '24px',
+            }
+        };
+
+        // create card entry
+        card = elements.create('card', {
+            style: style,
+            hidePostalCode: true,
+        });
+        card.mount("#card-element");
+
+        // check for input errors
+        card.addEventListener('change', function(event) {
+            if (event.error) {
+                displayError.classList.remove('d-none');
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.classList.add('d-none');
+                displayError.textContent = '';
+            }
+        });
+    })();
+
+    function val() {}
     </script>
 {{end}}
