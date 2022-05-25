@@ -29,7 +29,7 @@
         </div>
         <div class="mb-3">
             <label for="cardholder-email" class="form-label">Cardholder Email</label>
-            <input type="email" id="cardholder-email" name="cardholder_email" 
+            <input type="email" id="cardholder-email" name="email" 
             class="form-control" required="" autocomplete="cardholder-email-new"
             >
         </div>
@@ -71,7 +71,7 @@
     const payButton = document.getElementById("pay-button");
     const processing = document.getElementById("processing-payment");
 
-    stripe = Stripe('pk_test_51L2UrfBf88GU8XMBHXewMrv615W1LcbcIG2n0tQpEnCSrhowbO4lYr1oJRZbActJ7attM1E76Xwjm8dhuAW8Ai26002tewEYxi');
+    stripe = Stripe("{{.StripePublishableKey}}");
 
     (function() {
         // create stripe & elements
@@ -129,7 +129,7 @@
             body: JSON.stringify(payload),
         };
 
-        fetch("http://localhost:4001/api/payment-intent", requestOptions)
+        fetch("{{.API}}/api/payment-intent", requestOptions)
             .then(response => response.text())
             .then(response => {
                 let data;
@@ -158,6 +158,7 @@
                                 showCardSuccess();
                                 
                                 // submit form
+                                form.submit();
                             }
                         }
                     });
