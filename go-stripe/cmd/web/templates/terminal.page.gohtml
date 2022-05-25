@@ -66,7 +66,7 @@
     const payButton = document.getElementById("pay-button");
     const processing = document.getElementById("processing-payment");
 
-    stripe = Stripe('');
+    stripe = Stripe('pk_test_51L2UrfBf88GU8XMBHXewMrv615W1LcbcIG2n0tQpEnCSrhowbO4lYr1oJRZbActJ7attM1E76Xwjm8dhuAW8Ai26002tewEYxi');
 
     (function() {
         // create stripe & elements
@@ -106,6 +106,12 @@
             return;
         }
         form.classList.add("was-validated");
+        hidePayButton();
+    }
+
+    function hidePayButton() {
+        payButton.classList.add("d-none");
+        processing.classList.remove("d-none");
     }
     </script>
 {{end}}
