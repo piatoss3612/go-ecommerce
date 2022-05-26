@@ -53,7 +53,7 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4001, "Server port to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production|maintenance}")
-	flag.StringVar(&cfg.db.dsn, "dsn", "piatoss:secret@tcp(localhost:3307)/widgets?parseTime=true&tls=false", "dsn")
+	flag.StringVar(&cfg.db.dsn, "dsn", "piatoss:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "dsn")
 
 	flag.Parse()
 
