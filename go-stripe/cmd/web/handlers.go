@@ -24,6 +24,160 @@ func (app *application) VirtualTerminal(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// handle virtual terminal transaction data and redirect to recipt page
+func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r *http.Request) {
+	txnData, err := app.GetTransactionData(r)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// create a new transaction
+	txn := models.Transaction{
+		Amount:              txnData.PaymentAmount,
+		Currency:            txnData.PaymentCurrency,
+		LastFour:            txnData.LastFour,
+		PaymentIntent:       txnData.PaymentIntentID,
+		PaymentMethod:       txnData.PaymentMethodID,
+		ExpiryMonth:         int(txnData.ExpiryMonth),
+		ExpiryYear:          int(txnData.ExpiryYear),
+		BankReturnCode:      txnData.BankReturnCode,
+		TransactionStatusID: 2,
+	}
+
+	_, err = app.SaveTransaction(txn)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// wirte transaction data to session,
+	// and then redirect user to new page to prevent from resubmit form
+	app.Session.Put(r.Context(), "receipt", txnData)                      // put data to session
+	http.Redirect(w, r, "/virtual-terminal-receipt", http.StatusSeeOther) // redirect
+}
+
+// display virtual terminal receipt page
+func (app *application) VirtualTerminalReceipt(w http.ResponseWriter, r *http.Request) {
+	txn := app.Session.Get(r.Context(), "receipt").(TransactionData) // grap data from session
+	data := make(map[string]any)
+	data["txn"] = txn
+	app.Session.Remove(r.Context(), "receipt")                                    // remove data from session
+	if err := app.renderTemplate(w, r, "virtual-terminal-receipt", &templateData{ // render receipt page
+		Data: data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+// display the page to buy on widget
+func (app *application) ChargeOnce(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	widgetID, err := strconv.Atoi(id)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	widget, err := app.DB.GetWidget(widgetID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	data := make(map[string]any)
+	data["widget"] = widget
+
+	if err := app.renderTemplate(w, r, "buy-once", &templateData{
+		Data: data,
+	}, "stripe-js"); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+// handle widget transaction data and redirect to recipt page
+func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	widgetID, err := strconv.Atoi(r.Form.Get("product_id"))
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	txnData, err := app.GetTransactionData(r)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// create a new customer
+	customerID, err := app.SaveCustomer(txnData.FirstName, txnData.LastName, txnData.Email)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// create a new transaction
+	txn := models.Transaction{
+		Amount:              txnData.PaymentAmount,
+		Currency:            txnData.PaymentCurrency,
+		LastFour:            txnData.LastFour,
+		PaymentIntent:       txnData.PaymentIntentID,
+		PaymentMethod:       txnData.PaymentMethodID,
+		ExpiryMonth:         int(txnData.ExpiryMonth),
+		ExpiryYear:          int(txnData.ExpiryYear),
+		BankReturnCode:      txnData.BankReturnCode,
+		TransactionStatusID: 2,
+	}
+
+	txnID, err := app.SaveTransaction(txn)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// create a new order
+	order := models.Order{
+		WidgetID:      widgetID,
+		TransactionID: txnID,
+		CustomerID:    customerID,
+		StatusID:      1,
+		Quantity:      1,
+		Amount:        txnData.PaymentAmount,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	_, err = app.SaveOrder(order)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// wirte transaction data to session,
+	// and then redirect user to new page to prevent from resubmit form
+	app.Session.Put(r.Context(), "receipt", txnData)     // put data to session
+	http.Redirect(w, r, "/receipt", http.StatusSeeOther) // redirect
+}
+
+// display receipt page
+func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
+	txn := app.Session.Get(r.Context(), "receipt").(TransactionData) // grap data from session
+	data := make(map[string]any)
+	data["txn"] = txn
+	app.Session.Remove(r.Context(), "receipt")                   // remove data from session
+	if err := app.renderTemplate(w, r, "receipt", &templateData{ // render receipt page
+		Data: data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
 type TransactionData struct {
 	FirstName       string
 	LastName        string
@@ -99,88 +253,6 @@ func (app *application) GetTransactionData(r *http.Request) (TransactionData, er
 	return txnData, nil
 }
 
-// display payment succeeded page
-func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	widgetID, err := strconv.Atoi(r.Form.Get("product_id"))
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	txnData, err := app.GetTransactionData(r)
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	// create a new customer
-	customerID, err := app.SaveCustomer(txnData.FirstName, txnData.LastName, txnData.Email)
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	// create a new transaction
-	txn := models.Transaction{
-		Amount:              txnData.PaymentAmount,
-		Currency:            txnData.PaymentCurrency,
-		LastFour:            txnData.LastFour,
-		PaymentIntent:       txnData.PaymentIntentID,
-		PaymentMethod:       txnData.PaymentMethodID,
-		ExpiryMonth:         int(txnData.ExpiryMonth),
-		ExpiryYear:          int(txnData.ExpiryYear),
-		BankReturnCode:      txnData.BankReturnCode,
-		TransactionStatusID: 2,
-	}
-
-	txnID, err := app.SaveTransaction(txn)
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	// create a new order
-	order := models.Order{
-		WidgetID:      widgetID,
-		TransactionID: txnID,
-		CustomerID:    customerID,
-		StatusID:      1,
-		Quantity:      1,
-		Amount:        txnData.PaymentAmount,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
-	}
-
-	_, err = app.SaveOrder(order)
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	// wirte transaction data to session,
-	// and then redirect user to new page to prevent from resubmit form
-	app.Session.Put(r.Context(), "receipt", txnData)     // put data to session
-	http.Redirect(w, r, "/receipt", http.StatusSeeOther) // redirect
-}
-
-func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
-	txn := app.Session.Get(r.Context(), "receipt").(TransactionData) // grap data from session
-	data := make(map[string]any)
-	data["txn"] = txn
-	app.Session.Remove(r.Context(), "receipt")                   // remove data from session
-	if err := app.renderTemplate(w, r, "receipt", &templateData{ // render receipt page
-		Data: data,
-	}); err != nil {
-		app.errorLog.Println(err)
-	}
-}
-
 // save customer information into database and return id
 func (app *application) SaveCustomer(firstName, lastName, email string) (int, error) {
 	customer := models.Customer{
@@ -215,29 +287,4 @@ func (app *application) SaveOrder(order models.Order) (int, error) {
 	}
 
 	return id, nil
-}
-
-// displays the page to buy on widget
-func (app *application) ChargeOnce(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	widgetID, err := strconv.Atoi(id)
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	widget, err := app.DB.GetWidget(widgetID)
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
-	data := make(map[string]any)
-	data["widget"] = widget
-
-	if err := app.renderTemplate(w, r, "buy-once", &templateData{
-		Data: data,
-	}, "stripe-js"); err != nil {
-		app.errorLog.Println(err)
-	}
 }
