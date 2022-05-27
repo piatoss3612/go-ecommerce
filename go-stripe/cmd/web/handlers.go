@@ -133,8 +133,14 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 
 	// should wirte this data to session,
 	// and then redirect user to new page to prevent from resubmit form
+	app.Session.Put(r.Context(), "receipt", data)        // put data to session
+	http.Redirect(w, r, "/receipt", http.StatusSeeOther) // redirect
+}
 
-	if err := app.renderTemplate(w, r, "succeeded", &templateData{
+func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
+	data := app.Session.Get(r.Context(), "receipt").(map[string]any) // grap data from session
+	app.Session.Remove(r.Context(), "receipt")                       // remove data from session
+	if err := app.renderTemplate(w, r, "receipt", &templateData{     // render receipt page
 		Data: data,
 	}); err != nil {
 		app.errorLog.Println(err)
