@@ -59,7 +59,7 @@ func (app *application) serve() error {
 }
 
 func main() {
-	gob.Register(map[string]any{}) // specify type of session data
+	gob.Register(TransactionData{}) // specify type of session data
 
 	var cfg config
 
