@@ -2,8 +2,10 @@ package main
 
 import (
 	"myapp/internal/cards"
+	"myapp/internal/models"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -31,12 +33,19 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 	}
 
 	// read posted data
-	cardHolder := r.Form.Get("cardholder_name")
+	firstName := r.Form.Get("first_name")
+	lastName := r.Form.Get("last_name")
 	email := r.Form.Get("email")
 	paymentIntent := r.Form.Get("payment_intent")
 	paymentMethod := r.Form.Get("payment_method")
 	paymentAmount := r.Form.Get("payment_amount")
 	paymentCurrency := r.Form.Get("payment_currency")
+
+	widgetID, err := strconv.Atoi(r.Form.Get("product_id"))
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
 
 	card := cards.Card{
 		Secret: app.config.stripe.secret,
@@ -60,13 +69,56 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 	expiryYear := pm.Card.ExpYear
 
 	// create a new customer
-
-	// create a new order
+	customerID, err := app.SaveCustomer(firstName, lastName, email)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
 
 	// create a new transaction
+	amount, err := strconv.Atoi(paymentAmount)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	txn := models.Transaction{
+		Amount:              amount,
+		Currency:            paymentCurrency,
+		LastFour:            lastFour,
+		ExpiryMonth:         int(expiryMonth),
+		ExpiryYear:          int(expiryYear),
+		BankReturnCode:      pi.Charges.Data[0].ID,
+		TransactionStatusID: 2,
+	}
+
+	txnID, err := app.SaveTransaction(txn)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// create a new order
+	order := models.Order{
+		WidgetID:      widgetID,
+		TransactionID: txnID,
+		CustomerID:    customerID,
+		StatusID:      1,
+		Quantity:      1,
+		Amount:        amount,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	_, err = app.SaveOrder(order)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
 
 	data := make(map[string]any)
-	data["cardholder"] = cardHolder
+	data["first_name"] = firstName
+	data["last_name"] = lastName
 	data["email"] = email
 	data["pi"] = paymentIntent
 	data["pm"] = paymentMethod
@@ -85,6 +137,42 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 	}); err != nil {
 		app.errorLog.Println(err)
 	}
+}
+
+// save customer information into database and return id
+func (app *application) SaveCustomer(firstName, lastName, email string) (int, error) {
+	customer := models.Customer{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+	}
+
+	id, err := app.DB.InsertCustomer(customer)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+// save transaction information into database and return id
+func (app *application) SaveTransaction(txn models.Transaction) (int, error) {
+	id, err := app.DB.InsertTransaction(txn)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+// save order information into database and return id
+func (app *application) SaveOrder(order models.Order) (int, error) {
+	id, err := app.DB.InsertOrder(order)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 // displays the page to buy on widget
