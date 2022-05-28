@@ -196,6 +196,13 @@ func (app *application) BronzePlan(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// display bronze plan(subscription) receipt page
+func (app *application) BronzePlanReceipt(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "receipt-plan", nil); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
 type TransactionData struct {
 	FirstName       string
 	LastName        string
