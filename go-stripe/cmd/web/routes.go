@@ -23,6 +23,9 @@ func (app *application) routes() http.Handler {
 	mux.Post("/payment-succeeded", app.PaymentSucceeded)
 	mux.Get("/receipt", app.Receipt)
 
+	// subscription page
+	mux.Get("/plans/bronze", app.BronzePlan)
+
 	fileServer := http.FileServer(http.Dir("./static")) // use file system
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 

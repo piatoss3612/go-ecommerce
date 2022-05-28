@@ -178,6 +178,17 @@ func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// display the page to subscribe bronze plan
+func (app *application) BronzePlan(w http.ResponseWriter, r *http.Request) {
+	intMap := make(map[string]int)
+	intMap["plan_id"] = 1
+	if err := app.renderTemplate(w, r, "bronze-plan", &templateData{
+		IntMap: intMap,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
 type TransactionData struct {
 	FirstName       string
 	LastName        string
