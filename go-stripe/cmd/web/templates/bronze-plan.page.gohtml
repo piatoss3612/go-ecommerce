@@ -163,7 +163,7 @@
                 body: JSON.stringify(payload),
             }
 
-            fetch("{{.API}}/api/create-customer-and-subscrbe-to-plan", requestOptions)
+            fetch("{{.API}}/api/create-customer-and-subscribe-to-plan", requestOptions)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
