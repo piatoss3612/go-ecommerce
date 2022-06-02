@@ -313,3 +313,10 @@ func (app *application) SaveOrder(order models.Order) (int, error) {
 
 	return id, nil
 }
+
+// display login page
+func (app *application) LoginPage(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "login", nil, "stripe-js"); err != nil {
+		app.errorLog.Println(err)
+	}
+}
