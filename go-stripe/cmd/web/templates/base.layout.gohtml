@@ -87,10 +87,9 @@
           .then(response => response.json())
           .then(data => {
             if (data.error === true) {
-              console.log("not logged in");
               location.href = "/login";
             } else {
-              console.log("Logged in");
+              console.log(data.message);
             }
           })
         }
