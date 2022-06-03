@@ -312,3 +312,8 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 		app.errorLog.Println(err)
 	}
 }
+
+// check authentication
+func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
+	app.invalidCredentials(w)
+}
