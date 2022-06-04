@@ -19,7 +19,7 @@ func (app *application) Home(w http.ResponseWriter, r *http.Request) {
 
 // display virtual termial page
 func (app *application) VirtualTerminal(w http.ResponseWriter, r *http.Request) {
-	if err := app.renderTemplate(w, r, "terminal", nil, "stripe-js"); err != nil {
+	if err := app.renderTemplate(w, r, "terminal", nil); err != nil {
 		app.errorLog.Println(err)
 	}
 }
