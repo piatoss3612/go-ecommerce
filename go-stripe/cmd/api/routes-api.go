@@ -29,5 +29,15 @@ func (app *application) routes() http.Handler {
 
 	mux.Post("/api/is-authenticated", app.CheckAuthentication)
 
+	// create new mux and apply middleware to it
+	// routes starting with /api/admin will be grouped together and protected by middleware
+	mux.Route("/api/admin", func(mux chi.Router) {
+		mux.Use(app.Auth)
+
+		mux.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("got in"))
+		})
+	})
+
 	return mux
 }
