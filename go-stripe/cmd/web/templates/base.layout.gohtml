@@ -87,6 +87,10 @@
           .then(response => response.json())
           .then(data => {
             if (data.error === true) {
+              if (localStorage.getItem("token") !== null) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("token_expiry");
+              }
               location.href = "/login";
             } else {
               console.log(data.message);
