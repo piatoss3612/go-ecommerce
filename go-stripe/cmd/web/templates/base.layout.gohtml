@@ -70,7 +70,7 @@
 
       const checkAuth = () => {
         if (localStorage.getItem("token") === null) {
-          location.href = "/login";
+          location.href = "/logout";
           return
         } else {
           let token = localStorage.getItem("token");
