@@ -13,10 +13,14 @@ func (app *application) routes() http.Handler {
 	// home page
 	mux.Get("/", app.Home)
 
-	// virtual terminal page
-	mux.Get("/virtual-terminal", app.VirtualTerminal)
-	mux.Post("/virtual-terminal-payment-succeeded", app.VirtualTerminalPaymentSucceeded)
-	mux.Get("/virtual-terminal-receipt", app.VirtualTerminalReceipt)
+	// virtual terminal page protected by middleware
+	mux.Route("/admin", func(mux chi.Router) {
+		mux.Use(app.Auth)
+		mux.Get("/virtual-terminal", app.VirtualTerminal)
+	})
+
+	// mux.Post("/virtual-terminal-payment-succeeded", app.VirtualTerminalPaymentSucceeded)
+	// mux.Get("/virtual-terminal-receipt", app.VirtualTerminalReceipt)
 
 	// widget page
 	mux.Get("/widget/{id}", app.ChargeOnce)
