@@ -423,3 +423,25 @@ func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r
 
 	app.writeJSON(w, http.StatusOK, txn)
 }
+
+// send password reset email when user forgot password
+func (app *application) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Email string `json:"email"`
+	}
+
+	err := app.readJSON(w, r, &payload)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	// dummy data
+	var data struct {
+		Link string
+	}
+
+	data.Link = "http://wwww.unb.ca"
+
+	// send email
+}

@@ -38,5 +38,7 @@ func (app *application) routes() http.Handler {
 		mux.Post("/virtual-terminal-succeeded", app.VirtualTerminalPaymentSucceeded)
 	})
 
+	mux.Post("/api/forgot-password", app.SendPasswordResetEmail)
+
 	return mux
 }
