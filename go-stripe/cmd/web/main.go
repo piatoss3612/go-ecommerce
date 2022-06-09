@@ -71,7 +71,7 @@ func main() {
 	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "URL to api")
 	flag.StringVar(&cfg.db.dsn, "dsn", "piatoss:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "dsn")
 
-	flag.StringVar(&cfg.secretkey, "secret", "xcvsty4558q3gfrryjfs", "secret key")
+	flag.StringVar(&cfg.secretkey, "secret", "6z9srQg39vLfULthfRrzYKLJqzMVPAkD", "secret key")
 	flag.StringVar(&cfg.frontend, "frontend", "http://localhost:4000", "url to frontend")
 
 	flag.Parse()

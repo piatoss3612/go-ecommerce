@@ -68,7 +68,7 @@ func main() {
 	flag.StringVar(&cfg.smtp.password, "smtppwd", os.Getenv("SMTP_PASSWORD"), "smtp password")
 	flag.IntVar(&cfg.smtp.port, "smtpport", 587, "smtp port")
 
-	flag.StringVar(&cfg.secretkey, "secret", "xcvsty4558q3gfrryjfs", "secret key")
+	flag.StringVar(&cfg.secretkey, "secret", "6z9srQg39vLfULthfRrzYKLJqzMVPAkD", "secret key")
 	flag.StringVar(&cfg.frontend, "frontend", "http://localhost:4000", "url to frontend")
 
 	flag.Parse()
