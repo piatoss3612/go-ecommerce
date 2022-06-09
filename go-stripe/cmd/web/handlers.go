@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"myapp/internal/cards"
+	"myapp/internal/encryption"
 	"myapp/internal/models"
 	"myapp/internal/urlsigner"
 	"net/http"
@@ -363,6 +364,7 @@ func (app *application) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 func (app *application) ShowResetPassword(w http.ResponseWriter, r *http.Request) {
 	reqURL := r.RequestURI
 	testURL := fmt.Sprintf("%s%s", app.config.frontend, reqURL)
+	email := r.URL.Query().Get("email")
 
 	signer := urlsigner.Signer{
 		Secret: []byte(app.config.secretkey),
@@ -382,8 +384,18 @@ func (app *application) ShowResetPassword(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	encryptor := encryption.Encryption{
+		Key: []byte(app.config.secretkey),
+	}
+
+	encryptedEmail, err := encryptor.Encrypt(email)
+	if err != nil {
+		app.errorLog.Println("Encryption failed")
+		return
+	}
+
 	data := make(map[string]any)
-	data["email"] = r.URL.Query().Get("email")
+	data["email"] = encryptedEmail
 
 	if err := app.renderTemplate(w, r, "reset-password", &templateData{
 		Data: data,
