@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"myapp/internal/cards"
 	"myapp/internal/models"
+	"myapp/internal/urlsigner"
 	"net/http"
 	"strconv"
 	"time"
@@ -355,5 +357,23 @@ func (app *application) Logout(w http.ResponseWriter, r *http.Request) {
 func (app *application) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	if err := app.renderTemplate(w, r, "forgot-password", nil); err != nil {
 		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) ShowResetPassword(w http.ResponseWriter, r *http.Request) {
+	reqURL := r.RequestURI
+	testURL := fmt.Sprintf("%s%s", app.config.frontend, reqURL)
+
+	signer := urlsigner.Signer{
+		Secret: []byte(app.config.secretkey),
+	}
+
+	valid := signer.VerifyToken(testURL)
+
+	// test
+	if valid {
+		w.Write([]byte("valid"))
+	} else {
+		w.Write([]byte("invalid"))
 	}
 }
