@@ -36,6 +36,8 @@ func (app *application) routes() http.Handler {
 
 		// should be authenticated to post virtual terminal request
 		mux.Post("/virtual-terminal-succeeded", app.VirtualTerminalPaymentSucceeded)
+
+		mux.Post("/all-sales", app.AllSales)
 	})
 
 	mux.Post("/api/forgot-password", app.SendPasswordResetEmail)
