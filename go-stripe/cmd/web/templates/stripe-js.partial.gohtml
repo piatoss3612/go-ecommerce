@@ -70,7 +70,7 @@
         };
 
         fetch("{{.API}}/api/payment-intent", requestOptions)
-            .then(response => response.json())
+            .then(response => response.text())
             .then(response => {
                 let data;
                 try {
