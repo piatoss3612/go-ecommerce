@@ -39,7 +39,41 @@
     fetch("{{.API}}/api/admin/all-sales", requestOptions)
         .then(response => response.json())
         .then(data => {
-            console.log(data);
+            if (data) {
+                data.forEach(i => {
+                    let newRow = tbody.insertRow();
+                    let newCell = newRow.insertCell();
+
+                    newCell.innerHTML = `<a href="/admin/sales/${i.id}">Order ${i.id}</a>`;
+
+                    newCell = newRow.insertCell();
+                    let item = document.createTextNode(i.customer.last_name + ", " + i.customer.first_name);
+                    newCell.appendChild(item);
+
+                    newCell = newRow.insertCell();
+                    item = document.createTextNode(i.widget.name);
+                    newCell.appendChild(item);
+
+                    let currency = formatCurreny(i.transaction.amount);
+
+                    newCell = newRow.insertCell();
+                    item = document.createTextNode(currency);
+                    newCell.appendChild(item);
+                });
+            } else {
+                let newRow = tbody.insertRow();
+                let newCell = newRow.insertCell();
+                newCell.setAttribute("colspan", "4");
+                newCell.innerHTML = "No data available";
+            }
         })
+
+    function formatCurreny(amount) {
+        let c = parseFloat(amount/100);
+        return c.toLocaleString("en-CA", {
+            style: "currency",
+            currency: "CAD",
+        });
+    }
 </script>
 {{end}}
