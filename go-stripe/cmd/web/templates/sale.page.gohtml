@@ -1,0 +1,40 @@
+{{template "base" .}}
+
+{{define "title"}}
+    Sale
+{{end}}
+
+{{define "content"}}
+    <h2 class="mt-5">Sale</h2>
+    <hr> 
+{{end}}
+
+{{define "js"}}
+<script>
+    const token = localStorage.getItem("token");
+    const id = window.location.pathname.split("/").pop();
+
+    const requestOptions = {
+        method: "post",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": "Bearer " + token,
+        },
+    }
+
+    fetch("{{.API}}/api/admin/get-sales/" + id, requestOptions)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        })
+
+    function formatCurreny(amount) {
+        let c = parseFloat(amount/100);
+        return c.toLocaleString("en-CA", {
+            style: "currency",
+            currency: "CAD",
+        });
+    }
+</script>
+{{end}}
