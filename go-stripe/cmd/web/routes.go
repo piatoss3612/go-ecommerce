@@ -22,6 +22,7 @@ func (app *application) routes() http.Handler {
 		mux.Get("/sales/{id}", app.ShowSale)
 
 		mux.Get("/all-subscriptions", app.AllSubscriptions)
+		mux.Get("/subscriptions/{id}", app.ShowSubscription)
 	})
 
 	// widget page
