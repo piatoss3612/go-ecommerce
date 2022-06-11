@@ -313,8 +313,8 @@ func (m *DBModel) UpdatePasswordForUser(u User, hash string) error {
 	return nil
 }
 
-// get all sales from database
-func (m *DBModel) GetAllSales() ([]*Order, error) {
+// get all orders from database filtered by isRecurring
+func (m *DBModel) GetAllOrders(isRecurring int) ([]*Order, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -332,11 +332,11 @@ func (m *DBModel) GetAllSales() ([]*Order, error) {
 		LEFT JOIN widgets w ON (o.widget_id = w.id)
 		LEFT JOIN transactions t ON (o.transaction_id = t.id)
 		LEFT JOIN customers c ON (o.customer_id = c.id)
-		WHERE w.is_recurring = 0
+		WHERE w.is_recurring = ?
 	ORDER BY
 		o.created_at desc`
 
-	rows, err := m.DB.QueryContext(ctx, query)
+	rows, err := m.DB.QueryContext(ctx, query, isRecurring)
 	if err != nil {
 		return nil, err
 	}
