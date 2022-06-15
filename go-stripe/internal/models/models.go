@@ -462,6 +462,9 @@ func (m *DBModel) GetAllOrdersPaginated(pageSize, page, isRecurring int) ([]*Ord
 	}
 
 	lastPage := totalRecords / pageSize
+	if totalRecords%pageSize != 0 {
+		lastPage += 1
+	}
 
 	return orders, lastPage, totalRecords, nil
 }
