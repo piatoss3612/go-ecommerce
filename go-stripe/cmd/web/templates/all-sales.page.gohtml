@@ -25,8 +25,16 @@
 
 {{define "js"}}
 <script>
+    let currentPage = 1;
+    let pageSize = 3;
+
     const token = localStorage.getItem("token");
     const tbody = document.getElementById("sales-table").getElementsByTagName("tbody")[0];
+
+    let body = {
+        page_size: pageSize,
+        current_page: currentPage,
+    }
 
     const requestOptions = {
         method: "post",
@@ -35,13 +43,14 @@
             "Accept": "application/json",
             "Authorization": "Bearer " + token,
         },
+        body: JSON.stringify(body),
     }
 
     fetch("{{.API}}/api/admin/all-sales", requestOptions)
         .then(response => response.json())
         .then(data => {
-            if (data) {
-                data.forEach(i => {
+            if (data.orders) {
+                data.orders.forEach(i => {
                     let newRow = tbody.insertRow();
                     let newCell = newRow.insertCell();
 
