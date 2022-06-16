@@ -23,6 +23,9 @@ func (app *application) routes() http.Handler {
 
 		mux.Get("/all-subscriptions", app.AllSubscriptions)
 		mux.Get("/subscriptions/{id}", app.ShowSubscription)
+
+		mux.Get("/all-users", app.AllUsers)
+		mux.Get("/all-users/{id}", app.OneUser)
 	})
 
 	// widget page

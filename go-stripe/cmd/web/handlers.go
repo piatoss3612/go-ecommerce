@@ -447,3 +447,15 @@ func (app *application) ShowSubscription(w http.ResponseWriter, r *http.Request)
 		app.errorLog.Println(err)
 	}
 }
+
+func (app *application) AllUsers(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "all-users", nil); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) OneUser(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "one-user", nil); err != nil {
+		app.errorLog.Println(err)
+	}
+}
