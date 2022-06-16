@@ -620,7 +620,7 @@ func (m *DBModel) EditUser(u User) error {
 			first_name = ?,
 			last_name = ?,
 			email = ?,
-			updated_at = ?,
+			updated_at = ?
 		where
 			id = ?
 	`
@@ -640,8 +640,8 @@ func (m *DBModel) AddUser(u User, hash string) error {
 
 	stmt := `
 		insert into users 
-			first_name, last_name, email, password, created_at, updated_at
-		values (?,?,?,?,?,?)
+			(first_name, last_name, email, password, created_at, updated_at)
+		values (?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := m.DB.ExecContext(ctx, stmt,
