@@ -58,7 +58,10 @@ class="needs-validation" autocomplete="off" novalidate="">
     document.addEventListener("DOMContentLoaded", () => {
         // id: 0, only for create user
         if (id != 0) {
-            deleteBtn.classList.remove("d-none");
+            if (id !== "{{.UserID}}") {
+                deleteBtn.classList.remove("d-none");
+            }
+            
             const requestOptions = {
                 method: "post",
                 headers: {
