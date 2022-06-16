@@ -27,6 +27,45 @@
 
 {{define "js"}}
 <script>
-    const tbody = document.getElementById("user-table").getElementsByTagName("tbody")[0];
+    document.addEventListener("DOMContentLoaded", () => {
+        updateTable();
+    });
+
+    const updateTable = () => {
+        const token = localStorage.getItem("token");
+        const tbody = document.getElementById("user-table").getElementsByTagName("tbody")[0];
+        tbody.innerHTML = "";
+
+        const requestOptions = {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Bearer " + token,
+            },
+        }
+
+        fetch("{{.API}}/api/admin/all-users", requestOptions)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    data.forEach(u => {
+                        let newRow = tbody.insertRow();
+                        let newCell = newRow.insertCell();
+
+                        newCell.innerHTML = `<a href="/admin/all-users/${u.id}">${u.last_name}, ${u.first_name}</a>`;
+                        
+                        newCell = newRow.insertCell();
+                        let item = document.createTextNode(u.email);
+                        newCell.appendChild(item);
+                    })
+                } else {
+                    let newRow = tbody.insertRow();
+                    let newCell = tbody.insertCell();
+                    newCell.setAttribute("colspan", "2")
+                    newCell.innerHTML = "No data available"
+                }
+            })
+        };
 </script>
 {{end}}
