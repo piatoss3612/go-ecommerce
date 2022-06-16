@@ -49,6 +49,8 @@ func (app *application) routes() http.Handler {
 		mux.Post("/all-users/{id}", app.OneUser)
 
 		mux.Post("/all-users/edit/{id}", app.EditUser)
+
+		mux.Post("/all-users/delete/{id}", app.DeleteUser)
 	})
 
 	mux.Post("/api/forgot-password", app.SendPasswordResetEmail)

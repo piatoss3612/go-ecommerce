@@ -94,11 +94,28 @@ class="needs-validation" autocomplete="off" novalidate="">
             confirmButtonText: 'Delete User'
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire(
-                'Deleted',
-                'User deleted',
-                'success'
-                )
+                const requestOptions = {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "Authorization": "Bearer " + token,
+                    },
+                };
+
+                fetch("{{.API}}/api/admin/all-users/delete/" + id, requestOptions)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            Swal.fire(
+                                'Error',
+                                data.message,
+                                'error'
+                                )
+                        } else {
+                            location.href="/admin/all-users";
+                        }
+                    })
             }
         })
     });
