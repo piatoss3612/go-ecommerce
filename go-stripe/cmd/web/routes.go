@@ -13,6 +13,9 @@ func (app *application) routes() http.Handler {
 	// home page
 	mux.Get("/", app.Home)
 
+	// web socket
+	mux.Get("/ws", app.WsEndPoint)
+
 	// virtual terminal page protected by middleware
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(app.Auth)
