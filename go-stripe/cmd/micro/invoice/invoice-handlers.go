@@ -1,24 +1,47 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
+	"time"
 )
 
-func (app *application) routes() http.Handler {
-	mux := chi.NewRouter()
+type Order struct {
+	ID        int       `json:"id"`
+	Quantity  int       `json:"quantity"`
+	Amount    int       `json:"amount"`
+	Product   string    `json:"product"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+}
 
-	mux.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://*", "https://*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+func (app *application) CreateAndSendInvoice(w http.ResponseWriter, r *http.Request) {
+	// receive json
+	var order Order
 
-	mux.Get("/invoice/create-and-send", app.CreateAndSendInvoice)
+	err := app.readJSON(w, r, &order)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
 
-	return mux
+	// generate a pdf invoice file
+
+	// create mail
+
+	// send mail with attachment
+
+	// send response
+
+	var resp struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	resp.Error = false
+	resp.Message = fmt.Sprintf("Invoice %d.pdf created and sent to %s\n", order.ID, order.Email)
+
+	app.writeJSON(w, http.StatusCreated, resp)
 }
