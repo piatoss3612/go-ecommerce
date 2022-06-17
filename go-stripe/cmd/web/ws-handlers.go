@@ -12,20 +12,24 @@ type WebSocketConnection struct {
 	*websocket.Conn
 }
 
+// data received from client
 type WsPayload struct {
 	Action      string              `json:"action"`
 	Message     string              `json:"message"`
 	UserName    string              `json:"username"`
+	UserID      int                 `json:"user_id"`
 	MessageType string              `json:"message_type"`
 	Conn        WebSocketConnection `json:"-"`
 }
 
+// response sent back to client
 type WsJsonResponse struct {
 	Action  string `json:"action"`
 	Message string `json:"message"`
 	UserID  int    `json:"user_id"`
 }
 
+// parameters to upgrade http connection to websocket
 var upgradeConnection = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -36,8 +40,9 @@ var clients = make(map[WebSocketConnection]string)
 
 var wsChan = make(chan WsPayload)
 
+// websocket handler
 func (app *application) WsEndPoint(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgradeConnection.Upgrade(w, r, nil)
+	ws, err := upgradeConnection.Upgrade(w, r, nil) // upgrade http connection to websocket
 	if err != nil {
 		app.errorLog.Println(err)
 		return
@@ -55,12 +60,13 @@ func (app *application) WsEndPoint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	conn := WebSocketConnection{Conn: ws}
-	clients[conn] = ""
+	clients[conn] = "" // register client
 
-	go app.ListenForWS(&conn)
+	go app.ListenForWS(&conn) // keep listening while websocket connection is alive
 }
 
 func (app *application) ListenForWS(conn *WebSocketConnection) {
+	// ensure the application recovers gracefully
 	defer func() {
 		if r := recover(); r != nil {
 			app.errorLog.Println("ERROR:", fmt.Sprintf("%v", r))
@@ -73,9 +79,10 @@ func (app *application) ListenForWS(conn *WebSocketConnection) {
 		err := conn.ReadJSON(&payload)
 		if err != nil {
 			// do nothing
+			break
 		} else {
 			payload.Conn = *conn
-			wsChan <- payload
+			wsChan <- payload // push payload from client to channel
 		}
 	}
 }
@@ -85,12 +92,13 @@ func (app *application) ListenForWS(conn *WebSocketConnection) {
 func (app *application) ListenToWsChannel() {
 	var response WsJsonResponse
 	for {
-		e := <-wsChan
+		e := <-wsChan // pop payload from channel
 		switch e.Action {
 		case "deleteUser":
 			response.Action = "logout"
 			response.Message = "Your account has been deleted"
-			app.broadcastToAll(response)
+			response.UserID = e.UserID
+			app.broadcastToAll(response) // broadcast response
 		default:
 		}
 	}

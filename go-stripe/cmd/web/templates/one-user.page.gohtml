@@ -113,6 +113,13 @@ class="needs-validation" autocomplete="off" novalidate="">
                                 'error'
                                 )
                         } else {
+                            let jsonData = {
+                                action: "deleteUser",
+                                user_id: parseInt(id, 10),
+                            }
+
+                            socket.send(JSON.stringify(jsonData));
+
                             location.href="/admin/all-users";
                         }
                     })
