@@ -9,6 +9,7 @@ import (
 	"myapp/internal/encryption"
 	"myapp/internal/models"
 	"myapp/internal/urlsigner"
+	"myapp/internal/validator"
 	"net/http"
 	"strconv"
 	"strings"
@@ -136,6 +137,17 @@ func (app *application) CreateCustomerAndSubscribeToPlan(w http.ResponseWriter, 
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		app.errorLog.Println(err)
+		return
+	}
+
+	// validate data
+	v := validator.NewValidator()
+	v.Check(len(data.FirstName) > 1, "first_name", "must be at least 2 characters")
+	v.Check(len(data.LastName) > 1, "last_name", "must be at least 2 characters")
+	v.Check(strings.Contains(data.Email, "@"), "email", "must contain @")
+
+	if !v.Valid() {
+		app.failedValidation(w, r, v.Errors)
 		return
 	}
 
